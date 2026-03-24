@@ -1,433 +1,278 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { 
-  CheckCircle, 
-  Clock, 
-  AlertCircle, 
-  Filter, 
-  Search,
-  LayoutDashboard,
-  Calendar,
-  User,
-  Activity,
-  Users,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  Layers,
-  BookOpen,
-  Sparkles,
-  Target,
-  Rocket,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THP-CRM-2_5-V2 Dashboard</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React & ReactDOM -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+        body { font-family: 'Sarabun', sans-serif; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        @media print { .no-print { display: none; } }
+    </style>
+</head>
+<body class="bg-gray-50 text-slate-900">
+    <div id="root"></div>
 
-// Helper to parse Thai date string "DD-เม.ย.-26" to Date object
-const parseThaiDate = (dateStr) => {
-  const months = {
-    'ม.ค.': 0, 'ก.พ.': 1, 'มี.ค.': 2, 'เม.ย.': 3, 'พ.ค.': 4, 'มิ.ย.': 5,
-    'ก.ค.': 6, 'ส.ค.': 7, 'ก.ย.': 8, 'ต.ค.': 9, 'พ.ย.': 10, 'ธ.ค.': 11
-  };
-  const [day, monthName, year] = dateStr.split('-');
-  return new Date(2026, months[monthName], parseInt(day));
-};
+    <script type="text/babel">
+        const { useState, useMemo, useEffect, useRef } = React;
 
-const projectDataV2 = [
-  { id: 1, lot: 'Training', topic: 'Refresh Training', task: 'Salesforce Admin Training', start: '27-เม.ย.-26', end: '27-เม.ย.-26', owner: 'THP/Beryl8', progress: 0, status: 'Pending' },
-  { id: 2, lot: 'Training', topic: 'Refresh Training', task: 'Salesforce Sales Training', start: '30-เม.ย.-26', end: '30-เม.ย.-26', owner: 'THP/Beryl8', progress: 0, status: 'Pending' },
-  { id: 3, lot: 'Training', topic: 'Refresh Training', task: 'Salesforce Marketing Cloud Training', start: '04-พ.ค.-26', end: '04-พ.ค.-26', owner: 'THP/Beryl8', progress: 0, status: 'Pending' },
-  { id: 4, lot: 'Training', topic: 'Refresh Training', task: 'Tableau Training', start: '07-พ.ค.-26', end: '07-พ.ค.-26', owner: 'THP/Beryl8', progress: 0, status: 'Pending' },
-  { id: 5, lot: 'Training', topic: 'Refresh Training', task: 'Marketing Data Training (Builk One)', start: '11-พ.ค.-26', end: '11-พ.ค.-26', owner: 'THP/Beryl8', progress: 0, status: 'Pending' },
-  { id: 6, lot: 'Lot#1', topic: 'THP Middleware Connection', task: 'Requirement Gathering Session', start: '02-มี.ค.-26', end: '03-มี.ค.-26', owner: 'THP/Beryl8', progress: 100, status: 'Completed' },
-  { id: 7, lot: 'Lot#1', topic: 'THP Middleware Connection', task: 'System Design', start: '03-มี.ค.-26', end: '03-มี.ค.-26', owner: 'Beryl8', progress: 100, status: 'Completed' },
-  { id: 8, lot: 'Lot#1', topic: 'THP Middleware Connection', task: 'System Build', start: '04-มี.ค.-26', end: '05-มี.ค.-26', owner: 'Beryl8', progress: 100, status: 'Completed' },
-  { id: 9, lot: 'Lot#1', topic: 'THP Middleware Connection', task: 'Internal Test', start: '06-มี.ค.-26', end: '09-มี.ค.-26', owner: 'Beryl8', progress: 100, status: 'Completed' },
-  { id: 10, lot: 'Lot#1', topic: 'THP Middleware Connection', task: 'SIT & UAT', start: '10-มี.ค.-26', end: '11-มี.ค.-26', owner: 'THP/Beryl8', progress: 100, status: 'Completed' },
-  { id: 11, lot: 'Lot#1', topic: 'THP Middleware Connection', task: 'Duplicated Data Cleansing', start: '11-มี.ค.-26', end: '23-มี.ค.-26', owner: 'THP/Beryl8', progress: 100, status: 'Completed' },
-  { id: 12, lot: 'Lot#1', topic: 'THP Middleware Connection', task: 'Production Deployment', start: '24-มี.ค.-26', end: '27-มี.ค.-26', owner: 'Beryl8', progress: 0, status: 'In Progress' },
-  { id: 13, lot: 'Lot#1', topic: 'User Org Chart (Sales/CS)', task: 'Confirm Scope and Kick-off', start: '30-มี.ค.-26', end: '30-มี.ค.-26', owner: 'THP/Beryl8', progress: 0, status: 'Pending' },
-  { id: 14, lot: 'Lot#1', topic: 'User Org Chart (Sales/CS)', task: 'System Build & Config', start: '03-เม.ย.-26', end: '08-เม.ย.-26', owner: 'Beryl8', progress: 0, status: 'Pending' },
-  { id: 15, lot: 'Lot#2', topic: 'Snapshot Data Storage', task: 'Requirement Confirmation', start: '20-เม.ย.-26', end: '22-เม.ย.-26', owner: 'THP/Beryl8', progress: 0, status: 'Pending' },
-  { id: 16, lot: 'Lot#2', topic: 'Loyalty Point Exchange', task: 'System Build', start: '04-พ.ค.-26', end: '22-พ.ค.-26', owner: 'Beryl8', progress: 0, status: 'Pending' },
-  { id: 17, lot: 'Lot#2', topic: 'LINE UUID Integration', task: 'System Design', start: '23-เม.ย.-26', end: '30-เม.ย.-26', owner: 'Beryl8', progress: 0, status: 'Pending' },
-  { id: 18, lot: 'Lot#3', topic: 'e-Claim Management', task: 'System Build & Integration', start: '15-มิ.ย.-26', end: '10-ก.ค.-26', owner: 'Beryl8', progress: 0, status: 'Pending' },
-  { id: 19, lot: 'Lot#3', topic: 'Special Quotation Adjustments', task: 'Internal Test', start: '25-ก.ค.-26', end: '31-ก.ค.-26', owner: 'Beryl8', progress: 0, status: 'Pending' },
-];
+        // Helper to parse Thai date string "DD-เม.ย.-26" to Date object
+        const parseThaiDate = (dateStr) => {
+            const months = {
+                'ม.ค.': 0, 'ก.พ.': 1, 'มี.ค.': 2, 'เม.ย.': 3, 'พ.ค.': 4, 'มิ.ย.': 5,
+                'ก.ค.': 6, 'ส.ค.': 7, 'ก.ย.': 8, 'ต.ค.': 9, 'พ.ย.': 10, 'ธ.ค.': 11
+            };
+            const [day, monthName, year] = dateStr.split('-');
+            return new Date(2026, months[monthName], parseInt(day));
+        };
 
-const GanttChart = ({ data, filterLot, onFilterLotChange }) => {
-  const chartRef = useRef(null);
-  const startDate = new Date(2026, 2, 1); // March 1st
-  const endDate = new Date(2026, 7, 31); // August 31st
-  const today = new Date(2026, 2, 24); // Today: March 24, 2026
-  
-  const totalDays = (endDate - startDate) / (1000 * 60 * 60 * 24);
-  const months = ['มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.'];
-  const lots = ['All', 'Training', 'Lot#1', 'Lot#2', 'Lot#3'];
+        const projectDataV2 = [
+            { id: 1, lot: 'Training', topic: 'Refresh Training', task: 'Salesforce Admin Training', start: '27-เม.ย.-26', end: '27-เม.ย.-26', owner: 'THP/Beryl8', progress: 0, status: 'Pending' },
+            { id: 2, lot: 'Training', topic: 'Refresh Training', task: 'Salesforce Sales Training', start: '30-เม.ย.-26', end: '30-เม.ย.-26', owner: 'THP/Beryl8', progress: 0, status: 'Pending' },
+            { id: 3, lot: 'Training', topic: 'Refresh Training', task: 'Salesforce Marketing Cloud Training', start: '04-พ.ค.-26', end: '04-พ.ค.-26', owner: 'THP/Beryl8', progress: 0, status: 'Pending' },
+            { id: 4, lot: 'Training', topic: 'Refresh Training', task: 'Tableau Training', start: '07-พ.ค.-26', end: '07-พ.ค.-26', owner: 'THP/Beryl8', progress: 0, status: 'Pending' },
+            { id: 5, lot: 'Training', topic: 'Refresh Training', task: 'Marketing Data Training (Builk One)', start: '11-พ.ค.-26', end: '11-พ.ค.-26', owner: 'THP/Beryl8', progress: 0, status: 'Pending' },
+            { id: 6, lot: 'Lot#1', topic: 'THP Middleware Connection', task: 'Requirement Gathering Session', start: '02-มี.ค.-26', end: '03-มี.ค.-26', owner: 'THP/Beryl8', progress: 100, status: 'Completed' },
+            { id: 7, lot: 'Lot#1', topic: 'THP Middleware Connection', task: 'System Design', start: '03-มี.ค.-26', end: '03-มี.ค.-26', owner: 'Beryl8', progress: 100, status: 'Completed' },
+            { id: 8, lot: 'Lot#1', topic: 'THP Middleware Connection', task: 'System Build', start: '04-มี.ค.-26', end: '05-มี.ค.-26', owner: 'Beryl8', progress: 100, status: 'Completed' },
+            { id: 9, lot: 'Lot#1', topic: 'THP Middleware Connection', task: 'Internal Test', start: '06-มี.ค.-26', end: '09-มี.ค.-26', owner: 'Beryl8', progress: 100, status: 'Completed' },
+            { id: 10, lot: 'Lot#1', topic: 'THP Middleware Connection', task: 'SIT & UAT', start: '10-มี.ค.-26', end: '11-มี.ค.-26', owner: 'THP/Beryl8', progress: 100, status: 'Completed' },
+            { id: 11, lot: 'Lot#1', topic: 'THP Middleware Connection', task: 'Duplicated Data Cleansing', start: '11-มี.ค.-26', end: '23-มี.ค.-26', owner: 'THP/Beryl8', progress: 100, status: 'Completed' },
+            { id: 12, lot: 'Lot#1', topic: 'THP Middleware Connection', task: 'Production Deployment', start: '24-มี.ค.-26', end: '27-มี.ค.-26', owner: 'Beryl8', progress: 0, status: 'In Progress' },
+            { id: 13, lot: 'Lot#1', topic: 'User Org Chart (Sales/CS)', task: 'Confirm Scope and Kick-off', start: '30-มี.ค.-26', end: '30-มี.ค.-26', owner: 'THP/Beryl8', progress: 0, status: 'Pending' },
+            { id: 14, lot: 'Lot#1', topic: 'User Org Chart (Sales/CS)', task: 'System Build & Config', start: '03-เม.ย.-26', end: '08-เม.ย.-26', owner: 'Beryl8', progress: 0, status: 'Pending' },
+            { id: 15, lot: 'Lot#2', topic: 'Snapshot Data Storage', task: 'Requirement Confirmation', start: '20-เม.ย.-26', end: '22-เม.ย.-26', owner: 'THP/Beryl8', progress: 0, status: 'Pending' },
+            { id: 16, lot: 'Lot#2', topic: 'Loyalty Point Exchange', task: 'System Build', start: '04-พ.ค.-26', end: '22-พ.ค.-26', owner: 'Beryl8', progress: 0, status: 'Pending' },
+            { id: 17, lot: 'Lot#2', topic: 'LINE UUID Integration', task: 'System Design', start: '23-เม.ย.-26', end: '30-เม.ย.-26', owner: 'Beryl8', progress: 0, status: 'Pending' },
+            { id: 18, lot: 'Lot#3', topic: 'e-Claim Management', task: 'System Build & Integration', start: '15-มิ.ย.-26', end: '10-ก.ค.-26', owner: 'Beryl8', progress: 0, status: 'Pending' },
+            { id: 19, lot: 'Lot#3', topic: 'Special Quotation Adjustments', task: 'Internal Test', start: '25-ก.ค.-26', end: '31-ก.ค.-26', owner: 'Beryl8', progress: 0, status: 'Pending' },
+        ];
 
-  const getPosition = (date) => {
-    const diff = (date - startDate) / (1000 * 60 * 60 * 24);
-    return (diff / totalDays) * 100;
-  };
+        // Icon helper for UMD version of Lucide
+        const Icon = ({ name, size = 18, className = "" }) => {
+            useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [name]);
+            return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
+        };
 
-  const todayPos = getPosition(today);
+        const GanttChart = ({ data, filterLot, onFilterLotChange }) => {
+            const chartRef = useRef(null);
+            const startDate = new Date(2026, 2, 1);
+            const endDate = new Date(2026, 7, 31);
+            const today = new Date(2026, 2, 24);
+            const totalDays = (endDate - startDate) / (1000 * 60 * 60 * 24);
+            const months = ['มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.'];
+            const lots = ['All', 'Training', 'Lot#1', 'Lot#2', 'Lot#3'];
 
-  const getBarColorByStatus = (status) => {
-    switch(status) {
-      case 'Completed': return 'bg-green-500';
-      case 'In Progress': return 'bg-amber-500';
-      case 'Pending': return 'bg-slate-300';
-      default: return 'bg-slate-200';
-    }
-  };
+            const getPosition = (date) => ((date - startDate) / (1000 * 60 * 60 * 24) / totalDays) * 100;
+            const todayPos = getPosition(today);
 
-  return (
-    <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm mb-8 overflow-hidden">
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-        <div>
-          <h3 className="font-bold text-slate-800 flex items-center gap-2">
-            <Calendar size={20} className="text-red-600" />
-            Project Gantt Chart (Status View)
-          </h3>
-          <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 italic">Visualization with Lot, Topic & Task labels</p>
-        </div>
-        
-        <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-2xl border border-slate-100">
-          <span className="text-[10px] font-black text-slate-400 uppercase px-2">View Lot:</span>
-          {lots.map(l => (
-            <button 
-              key={l}
-              onClick={() => onFilterLotChange(l)}
-              className={`px-3 py-1.5 text-[10px] font-bold rounded-xl transition-all ${filterLot === l ? 'bg-white text-red-600 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800'}`}
-            >
-              {l}
-            </button>
-          ))}
-        </div>
-      </div>
+            const getBarColorByStatus = (status) => {
+                switch(status) {
+                    case 'Completed': return 'bg-green-500';
+                    case 'In Progress': return 'bg-amber-500';
+                    case 'Pending': return 'bg-slate-300';
+                    default: return 'bg-slate-200';
+                }
+            };
 
-      <div className="relative overflow-x-auto custom-scrollbar pb-6" ref={chartRef}>
-        {/* Adjusted min-width to accommodate longer labels */}
-        <div className="min-w-[1400px] relative px-2">
-          {/* Month Headers */}
-          <div className="flex border-b border-slate-100 mb-6 pb-3">
-            {months.map((m, i) => (
-              <div key={m} className="flex-1 text-center text-[10px] font-black text-slate-400 border-r border-slate-50 last:border-0 uppercase tracking-tighter">
-                {m} 2026
-              </div>
-            ))}
-          </div>
-
-          {/* Timeline Content */}
-          <div className="relative pt-4 min-h-[120px]">
-            {/* Today Marker */}
-            <div 
-              className="absolute top-0 bottom-0 w-px border-l-2 border-dashed border-red-500 z-20 pointer-events-none opacity-60" 
-              style={{ left: `${todayPos}%` }}
-            >
-              <div className="absolute -top-7 -left-1/2 -translate-x-1/2 bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-full font-black whitespace-nowrap shadow-sm">
-                TODAY (24 มี.ค.)
-              </div>
-            </div>
-
-            {/* Grid Lines */}
-            <div className="absolute inset-0 flex pointer-events-none opacity-20">
-               {months.map((_, i) => (
-                 <div key={i} className="flex-1 border-r border-slate-200 last:border-0"></div>
-               ))}
-            </div>
-
-            {/* Bars and Labels */}
-            <div className="space-y-4 relative z-10">
-              {data.map((task) => {
-                const start = parseThaiDate(task.start);
-                const end = parseThaiDate(task.end);
-                const left = getPosition(start);
-                const width = Math.max(0.8, getPosition(end) - left);
-                
-                const barColor = getBarColorByStatus(task.status);
-                
-                return (
-                  <div key={task.id} className="relative h-7 group">
-                    {/* The Bar */}
-                    <div 
-                      className={`absolute top-0 h-full rounded-lg shadow-sm border border-white/30 transition-all group-hover:scale-y-110 group-hover:shadow-md cursor-help ${barColor}`}
-                      style={{ left: `${left}%`, width: `${width}%` }}
-                      title={`${task.task}\nStatus: ${task.status}\nLot: ${task.lot}\nTopic: ${task.topic}\n(${task.start} - ${task.end})`}
-                    >
-                    </div>
-
-                    {/* Text Label AFTER the bar - Updated to include TOPIC */}
-                    <div 
-                      className="absolute top-0 h-full flex items-center whitespace-nowrap pl-2"
-                      style={{ left: `${left + width}%` }}
-                    >
-                      <span className="text-[9px] font-black text-slate-600 uppercase tracking-tighter opacity-80 group-hover:opacity-100 transition-opacity">
-                        <span className="text-slate-400 font-bold">Lot:</span> {task.lot} 
-                        <span className="mx-1 text-slate-300">|</span> 
-                        <span className="text-slate-400 font-bold">Topic:</span> {task.topic}
-                        <span className="mx-1 text-slate-300">|</span> 
-                        <span className="text-slate-400 font-bold">Task:</span> {task.task}
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-              
-              {data.length === 0 && (
-                <div className="text-center py-10 text-slate-400 text-xs font-bold uppercase tracking-widest">
-                  No tasks available for this filter
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-      
-      {/* Legend */}
-      <div className="mt-4 pt-4 border-t border-slate-50 flex flex-wrap gap-6">
-          <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-            <div className="w-3 h-3 bg-green-500 rounded-sm"></div> Completed
-          </div>
-          <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-            <div className="w-3 h-3 bg-amber-500 rounded-sm"></div> In Progress
-          </div>
-          <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-            <div className="w-3 h-3 bg-slate-300 rounded-sm"></div> Pending
-          </div>
-      </div>
-    </div>
-  );
-};
-
-const App = () => {
-  const [filterLot, setFilterLot] = useState('All');
-  const [filterStatus, setFilterStatus] = useState('All');
-  const [filterOwner, setFilterOwner] = useState('All');
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' });
-
-  const lots = ['All', 'Training', 'Lot#1', 'Lot#2', 'Lot#3'];
-  const statuses = ['All', 'Completed', 'In Progress', 'Pending'];
-  const owners = useMemo(() => ['All', ...new Set(projectDataV2.map(item => item.owner))].sort(), []);
-
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
-
-  const sortedAndFilteredTasks = useMemo(() => {
-    let result = projectDataV2.filter(item => {
-      const matchLot = filterLot === 'All' || item.lot === filterLot;
-      const matchStatus = filterStatus === 'All' || item.status === filterStatus;
-      const matchOwner = filterOwner === 'All' || item.owner === filterOwner;
-      const matchSearch = item.task.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          item.topic.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchLot && matchStatus && matchOwner && matchSearch;
-    });
-
-    if (sortConfig.key) {
-      result.sort((a, b) => {
-        const aVal = a[sortConfig.key];
-        const bVal = b[sortConfig.key];
-        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
-        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-    }
-    return result;
-  }, [filterLot, filterStatus, filterOwner, searchTerm, sortConfig]);
-
-  const stats = useMemo(() => {
-    const total = projectDataV2.length;
-    const completed = projectDataV2.filter(t => t.status === 'Completed').length;
-    const avgProgress = total > 0 ? Math.round(projectDataV2.reduce((acc, curr) => acc + curr.progress, 0) / total) : 0;
-    return { total, completed, avgProgress };
-  }, []);
-
-  return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-8 font-sans text-slate-900">
-      <div className="max-w-7xl mx-auto">
-        
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
-          <div className="flex items-center gap-4">
-            <div className="p-3 bg-red-600 rounded-2xl text-white shadow-lg shadow-red-200">
-              <LayoutDashboard size={32} />
-            </div>
-            <div>
-              <h1 className="text-3xl font-black tracking-tight text-slate-900 uppercase">THP-CRM-2_5-V2</h1>
-              <p className="text-slate-500 font-bold text-xs">Project Monitoring Dashboard | ข้อมูลล่าสุด: 23 มี.ค. 26</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-6 bg-white p-5 rounded-3xl shadow-sm border border-slate-200">
-            <div className="text-right">
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Progress</p>
-              <p className="text-3xl font-black text-red-600 leading-none">{stats.avgProgress}%</p>
-            </div>
-            <div className="w-32 h-4 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
-              <div className="h-full bg-red-600 rounded-full transition-all duration-1000" style={{ width: `${stats.avgProgress}%` }}></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Gemini Analysis Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2 bg-slate-900 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden border border-slate-800">
-            <Sparkles className="absolute top-4 right-4 text-white/10" size={100} />
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-6">
-                <Target className="text-red-500" />
-                <h2 className="text-lg font-black uppercase tracking-widest">V2 Analysis Insights</h2>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-md">
-                    <p className="text-[10px] font-black text-red-400 mb-2 uppercase italic tracking-wider">Success Path</p>
-                    <p className="text-sm leading-relaxed text-slate-200 font-medium">
-                        ส่วนงาน <span className="text-white font-bold underline decoration-red-500/50">Middleware (Lot 1)</span> บรรลุ SIT/UAT สำเร็จ พร้อม Deployment ในวันที่ 24-27 มี.ค. นี้
-                    </p>
-                </div>
-                <div className="bg-white/5 p-4 rounded-2xl border border-white/10 backdrop-blur-md">
-                    <p className="text-[10px] font-black text-amber-400 mb-2 uppercase italic tracking-wider">Risk Observation</p>
-                    <p className="text-sm leading-relaxed text-slate-200 font-medium">
-                        ระวังแผนงาน <span className="text-white font-bold">Refresh Training</span> ปลายเดือน เม.ย. เนื่องจากมีกิจกรรมทับซ้อนที่ต้องประสานงานสูง
-                    </p>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <div className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-center">
-            <div className="flex items-center gap-3 mb-6">
-              <Rocket className="text-red-600" />
-              <h3 className="font-black text-slate-800 text-lg uppercase tracking-tight">Next Milestone</h3>
-            </div>
-            <div className="space-y-5">
-              <div className="border-l-4 border-red-600 pl-4 py-1">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">24 - 27 มี.ค. 26</p>
-                <p className="text-sm font-bold text-slate-800 leading-snug">Production Deployment (Lot 1)</p>
-              </div>
-              <div className="border-l-4 border-slate-200 pl-4 py-1 opacity-60">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">30 มี.ค. 26</p>
-                <p className="text-sm font-bold text-slate-800 uppercase">Project Kick-off (Org Chart)</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Filters & Search */}
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mb-8 flex flex-wrap items-center gap-6">
-          <div className="flex-1 min-w-[300px] relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="ค้นหาชื่องาน หรือหัวข้อ..." 
-              className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-red-500/5 transition-all text-sm font-bold"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <div className="flex flex-wrap items-center gap-4">
-            <select value={filterOwner} onChange={(e) => setFilterOwner(e.target.value)} className="bg-white border border-slate-200 rounded-2xl px-4 py-2 text-[10px] font-black uppercase focus:outline-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors">
-              {owners.map(o => <option key={o} value={o}>{o === 'All' ? 'Owners: All' : o}</option>)}
-            </select>
-            <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="bg-white border border-slate-200 rounded-2xl px-4 py-2 text-[10px] font-black uppercase focus:outline-none shadow-sm cursor-pointer hover:bg-slate-50 transition-colors">
-              {statuses.map(s => <option key={s} value={s}>{s === 'All' ? 'Status: All' : s}</option>)}
-            </select>
-          </div>
-        </div>
-
-        {/* --- GANTT CHART SECTION --- */}
-        <GanttChart 
-          data={sortedAndFilteredTasks} 
-          filterLot={filterLot} 
-          onFilterLotChange={setFilterLot} 
-        />
-
-        {/* Task Table */}
-        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="overflow-x-auto custom-scrollbar">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <Th label="Lot" icon={<Layers size={14}/>} onClick={() => handleSort('lot')} active={sortConfig.key === 'lot'} direction={sortConfig.direction} />
-                  <Th label="Topic" icon={<BookOpen size={14}/>} onClick={() => handleSort('topic')} active={sortConfig.key === 'topic'} direction={sortConfig.direction} />
-                  <Th label="Task Detail" onClick={() => handleSort('task')} active={sortConfig.key === 'task'} direction={sortConfig.direction} />
-                  <Th label="Progress" center onClick={() => handleSort('progress')} active={sortConfig.key === 'progress'} direction={sortConfig.direction} />
-                  <Th label="Owner" icon={<Users size={14}/>} onClick={() => handleSort('owner')} active={sortConfig.key === 'owner'} direction={sortConfig.direction} />
-                  <Th label="Schedule" />
-                  <Th label="Status" onClick={() => handleSort('status')} active={sortConfig.key === 'status'} direction={sortConfig.direction} />
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {sortedAndFilteredTasks.length > 0 ? sortedAndFilteredTasks.map((item) => (
-                  <tr key={item.id} className="hover:bg-red-50/20 transition-colors group">
-                    <td className="px-6 py-5">
-                      <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg uppercase tracking-wider ${
-                        item.lot === 'Lot#1' ? 'bg-red-100 text-red-700' : 
-                        item.lot === 'Training' ? 'bg-blue-100 text-blue-700' : 
-                        item.lot === 'Lot#2' ? 'bg-emerald-100 text-emerald-700' :
-                        item.lot === 'Lot#3' ? 'bg-purple-100 text-purple-700' :
-                        'bg-slate-100 text-slate-600'
-                      }`}>
-                        {item.lot}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5 text-[10px] font-bold text-slate-400 max-w-[150px] truncate" title={item.topic}>{item.topic}</td>
-                    <td className="px-6 py-5 font-bold text-sm text-slate-800 leading-tight">{item.task}</td>
-                    <td className="px-6 py-5">
-                      <div className="flex flex-col items-center gap-1.5">
-                        <span className="text-[10px] font-black text-slate-600">{item.progress}%</span>
-                        <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
-                          <div className={`h-full transition-all duration-700 ${item.progress === 100 ? 'bg-green-500' : 'bg-red-600'}`} style={{ width: `${item.progress}%` }}></div>
+            return (
+                <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm mb-8 overflow-hidden">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                        <div>
+                            <h3 className="font-bold text-slate-800 flex items-center gap-2">
+                                <Icon name="calendar" className="text-red-600" />
+                                Project Gantt Chart (Status View)
+                            </h3>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 italic">Visualization with Lot, Topic & Task labels</p>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-5 text-[10px] font-black text-slate-500">{item.owner}</td>
-                    <td className="px-6 py-5 text-[10px] text-slate-400">
-                      <div className="flex items-center gap-1 font-black text-slate-700 leading-none mb-1"><Calendar size={12} className="text-red-500 opacity-70"/> {item.start}</div>
-                      <div className="ml-4 opacity-70 font-bold uppercase tracking-tighter">ถึง {item.end}</div>
-                    </td>
-                    <td className="px-6 py-5 text-right">
-                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase border tracking-widest ${
-                        item.status === 'Completed' ? 'bg-green-100 text-green-700 border-green-200 shadow-sm shadow-green-50' : 
-                        item.status === 'In Progress' ? 'bg-amber-100 text-amber-700 border-amber-200' : 
-                        'bg-slate-100 text-slate-500 border-slate-200'
-                      }`}>
-                        {item.status}
-                      </span>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan="7" className="p-24 text-center text-slate-400 font-black uppercase tracking-widest text-xs">No matching results found</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-          <div className="bg-slate-50 px-6 py-4 border-t border-slate-200 text-right">
-             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Showing {sortedAndFilteredTasks.length} of {projectDataV2.length} Task(s)</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+                        <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-2xl border border-slate-100 no-print">
+                            <span className="text-[10px] font-black text-slate-400 uppercase px-2">View Lot:</span>
+                            {lots.map(l => (
+                                <button key={l} onClick={() => onFilterLotChange(l)} className={`px-3 py-1.5 text-[10px] font-bold rounded-xl transition-all ${filterLot === l ? 'bg-white text-red-600 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800'}`}>{l}</button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="relative overflow-x-auto custom-scrollbar pb-6" ref={chartRef}>
+                        <div className="min-w-[1400px] relative px-2">
+                            <div className="flex border-b border-slate-100 mb-6 pb-3">
+                                {months.map(m => (
+                                    <div key={m} className="flex-1 text-center text-[10px] font-black text-slate-400 border-r border-slate-50 last:border-0 uppercase tracking-tighter">{m} 2026</div>
+                                ))}
+                            </div>
+                            <div className="relative pt-4 min-h-[120px]">
+                                <div className="absolute top-0 bottom-0 w-px border-l-2 border-dashed border-red-500 z-20 pointer-events-none opacity-60" style={{ left: `${todayPos}%` }}>
+                                    <div className="absolute -top-7 -left-1/2 -translate-x-1/2 bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-full font-black whitespace-nowrap shadow-sm">TODAY (24 มี.ค.)</div>
+                                </div>
+                                <div className="space-y-4 relative z-10">
+                                    {data.map(task => {
+                                        const left = getPosition(parseThaiDate(task.start));
+                                        const width = Math.max(0.8, getPosition(parseThaiDate(task.end)) - left);
+                                        return (
+                                            <div key={task.id} className="relative h-7 group">
+                                                <div className={`absolute top-0 h-full rounded-lg shadow-sm border border-white/30 transition-all group-hover:scale-y-110 ${getBarColorByStatus(task.status)}`} style={{ left: `${left}%`, width: `${width}%` }}></div>
+                                                <div className="absolute top-0 h-full flex items-center whitespace-nowrap pl-2" style={{ left: `${left + width}%` }}>
+                                                    <span className="text-[9px] font-black text-slate-600 uppercase tracking-tighter opacity-80 group-hover:opacity-100 transition-opacity">
+                                                        <span className="text-slate-400 font-bold">Lot:</span> {task.lot} | <span className="text-slate-400 font-bold">Topic:</span> {task.topic} | <span className="text-slate-400 font-bold">Task:</span> {task.task}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-4 pt-4 border-t border-slate-50 flex flex-wrap gap-6">
+                        <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest"><div className="w-3 h-3 bg-green-500 rounded-sm"></div> Completed</div>
+                        <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest"><div className="w-3 h-3 bg-amber-500 rounded-sm"></div> In Progress</div>
+                        <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest"><div className="w-3 h-3 bg-slate-300 rounded-sm"></div> Pending</div>
+                    </div>
+                </div>
+            );
+        };
 
-const Th = ({ label, icon, center, onClick, active, direction }) => (
-  <th className={`px-6 py-4 text-[10px] font-black text-slate-400 uppercase tracking-widest cursor-pointer hover:bg-slate-100 transition-colors ${center ? 'text-center' : ''}`} onClick={onClick}>
-    <div className={`flex items-center ${center ? 'justify-center' : ''}`}>
-      {icon && <span className="mr-2 opacity-40">{icon}</span>}
-      {label}
-      {active ? (
-        direction === 'asc' ? <ArrowUp size={12} className="ml-1 text-red-600" /> : <ArrowDown size={12} className="ml-1 text-red-600" />
-      ) : (
-        <ArrowUpDown size={12} className="ml-1 opacity-20" />
-      )}
-    </div>
-  </th>
-);
+        const App = () => {
+            const [filterLot, setFilterLot] = useState('All');
+            const [filterStatus, setFilterStatus] = useState('All');
+            const [filterOwner, setFilterOwner] = useState('All');
+            const [searchTerm, setSearchTerm] = useState('');
+            const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' });
 
-export default App;
+            const lots = ['All', 'Training', 'Lot#1', 'Lot#2', 'Lot#3'];
+            const statuses = ['All', 'Completed', 'In Progress', 'Pending'];
+            const owners = useMemo(() => ['All', ...new Set(projectDataV2.map(item => item.owner))].sort(), []);
+
+            const handleSort = (key) => setSortConfig({ key, direction: sortConfig.key === key && sortConfig.direction === 'asc' ? 'desc' : 'asc' });
+
+            const sortedAndFilteredTasks = useMemo(() => {
+                let result = projectDataV2.filter(item => 
+                    (filterLot === 'All' || item.lot === filterLot) &&
+                    (filterStatus === 'All' || item.status === filterStatus) &&
+                    (filterOwner === 'All' || item.owner === filterOwner) &&
+                    (item.task.toLowerCase().includes(searchTerm.toLowerCase()) || item.topic.toLowerCase().includes(searchTerm.toLowerCase()))
+                );
+                if (sortConfig.key) {
+                    result.sort((a, b) => {
+                        if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1;
+                        if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1;
+                        return 0;
+                    });
+                }
+                return result;
+            }, [filterLot, filterStatus, filterOwner, searchTerm, sortConfig]);
+
+            const stats = useMemo(() => {
+                const total = projectDataV2.length;
+                const completed = projectDataV2.filter(t => t.status === 'Completed').length;
+                const avg = total > 0 ? Math.round(projectDataV2.reduce((acc, curr) => acc + curr.progress, 0) / total) : 0;
+                return { total, completed, avg };
+            }, []);
+
+            return (
+                <div className="min-h-screen bg-gray-50 p-4 md:p-8 font-sans text-slate-900">
+                    <div className="max-w-7xl mx-auto">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-6">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-red-600 rounded-2xl text-white shadow-lg"><Icon name="layout-dashboard" size={32} /></div>
+                                <div>
+                                    <h1 className="text-3xl font-black tracking-tight uppercase">THP-CRM-2_5-V2</h1>
+                                    <p className="text-slate-500 font-bold text-xs">Project Monitoring Dashboard | 23 มี.ค. 26</p>
+                                </div>
+                            </div>
+                            <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-200 flex items-center gap-6">
+                                <div className="text-right">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Progress</p>
+                                    <p className="text-3xl font-black text-red-600 leading-none">{stats.avg}%</p>
+                                </div>
+                                <div className="w-32 h-4 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                                    <div className="h-full bg-red-600 rounded-full transition-all duration-1000" style={{ width: `${stats.avg}%` }}></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                            <div className="lg:col-span-2 bg-slate-900 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
+                                <Icon name="sparkles" size={100} className="absolute top-4 right-4 text-white/10" />
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-2 mb-6"><Icon name="target" className="text-red-500" /><h2 className="text-lg font-black uppercase tracking-widest">V2 Analysis Insights</h2></div>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="bg-white/5 p-4 rounded-2xl border border-white/10"><p className="text-[10px] font-black text-red-400 mb-2 uppercase italic tracking-wider">Success Path</p><p className="text-sm leading-relaxed text-slate-200">ส่วนงาน Lot 1 บรรลุ SIT/UAT สำเร็จ พร้อม Deployment 24-27 มี.ค.</p></div>
+                                        <div className="bg-white/5 p-4 rounded-2xl border border-white/10"><p className="text-[10px] font-black text-amber-400 mb-2 uppercase italic tracking-wider">Risk Observation</p><p className="text-sm leading-relaxed text-slate-200">ระวังแผนงาน Refresh Training ปลายเดือน เม.ย. กิจกรรมทับซ้อนสูง</p></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-white p-8 rounded-3xl border border-slate-200 flex flex-col justify-center">
+                                <div className="flex items-center gap-3 mb-6"><Icon name="rocket" className="text-red-600" /><h3 className="font-black text-slate-800 text-lg uppercase">Next Milestone</h3></div>
+                                <div className="space-y-5">
+                                    <div className="border-l-4 border-red-600 pl-4 py-1"><p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">24 - 27 มี.ค. 26</p><p className="text-sm font-bold text-slate-800">Production Deployment (Lot 1)</p></div>
+                                    <div className="border-l-4 border-slate-200 pl-4 py-1 opacity-60"><p className="text-[10px] font-black text-slate-400 uppercase tracking-wider">30 มี.ค. 26</p><p className="text-sm font-bold text-slate-800 uppercase">Project Kick-off (Org Chart)</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mb-8 flex flex-wrap items-center gap-6 no-print">
+                            <div className="flex-1 min-w-[300px] relative">
+                                <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+                                <input type="text" placeholder="ค้นหาชื่องาน หรือหัวข้อ..." className="w-full pl-12 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-red-500/5 transition-all text-sm font-bold" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+                            </div>
+                            <div className="flex flex-wrap items-center gap-4">
+                                <select value={filterOwner} onChange={(e) => setFilterOwner(e.target.value)} className="bg-white border border-slate-200 rounded-2xl px-4 py-2 text-[10px] font-black uppercase focus:outline-none shadow-sm">{owners.map(o => <option key={o} value={o}>{o === 'All' ? 'Owners: All' : o}</option>)}</select>
+                                <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="bg-white border border-slate-200 rounded-2xl px-4 py-2 text-[10px] font-black uppercase focus:outline-none shadow-sm">{statuses.map(s => <option key={s} value={s}>{s === 'All' ? 'Status: All' : s}</option>)}</select>
+                            </div>
+                        </div>
+
+                        <GanttChart data={sortedAndFilteredTasks} filterLot={filterLot} onFilterLotChange={setFilterLot} />
+
+                        <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div className="overflow-x-auto custom-scrollbar">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-slate-50 border-b border-slate-200 uppercase text-[10px] font-black text-slate-400">
+                                            <th className="px-6 py-4 cursor-pointer" onClick={() => handleSort('lot')}>Lot <Icon name="arrow-up-down" size={12} className="inline ml-1 opacity-20"/></th>
+                                            <th className="px-6 py-4 cursor-pointer" onClick={() => handleSort('topic')}>Topic <Icon name="arrow-up-down" size={12} className="inline ml-1 opacity-20"/></th>
+                                            <th className="px-6 py-4 cursor-pointer" onClick={() => handleSort('task')}>Task Detail <Icon name="arrow-up-down" size={12} className="inline ml-1 opacity-20"/></th>
+                                            <th className="px-6 py-4 text-center cursor-pointer" onClick={() => handleSort('progress')}>Progress <Icon name="arrow-up-down" size={12} className="inline ml-1 opacity-20"/></th>
+                                            <th className="px-6 py-4 cursor-pointer" onClick={() => handleSort('owner')}>Owner <Icon name="arrow-up-down" size={12} className="inline ml-1 opacity-20"/></th>
+                                            <th className="px-6 py-4">Schedule</th>
+                                            <th className="px-6 py-4 text-right cursor-pointer" onClick={() => handleSort('status')}>Status <Icon name="arrow-up-down" size={12} className="inline ml-1 opacity-20"/></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {sortedAndFilteredTasks.map(item => (
+                                            <tr key={item.id} className="hover:bg-red-50/20 group">
+                                                <td className="px-6 py-5"><span className={`text-[9px] font-black px-2.5 py-1 rounded-lg uppercase ${item.lot === 'Lot#1' ? 'bg-red-100 text-red-700' : (item.lot === 'Training' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-600')}`}>{item.lot}</span></td>
+                                                <td className="px-6 py-5 text-[10px] font-bold text-slate-400 max-w-[150px] truncate">{item.topic}</td>
+                                                <td className="px-6 py-5 font-bold text-sm text-slate-800 leading-tight">{item.task}</td>
+                                                <td className="px-6 py-5 text-center"><div className="text-[10px] font-black mb-1">{item.progress}%</div><div className="w-20 h-1.5 bg-slate-100 rounded-full mx-auto overflow-hidden border"><div className={`h-full ${item.progress === 100 ? 'bg-green-500' : 'bg-red-600'}`} style={{ width: `${item.progress}%` }}></div></div></td>
+                                                <td className="px-6 py-5 text-[10px] font-black text-slate-500 uppercase">{item.owner}</td>
+                                                <td className="px-6 py-5 text-[10px] text-slate-400"><div className="font-black text-slate-700 mb-1">{item.start}</div><div className="opacity-70 uppercase">ถึง {item.end}</div></td>
+                                                <td className="px-6 py-5 text-right"><span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase border tracking-widest ${item.status === 'Completed' ? 'bg-green-100 text-green-700 border-green-200' : (item.status === 'In Progress' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200')}`}>{item.status}</span></td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
