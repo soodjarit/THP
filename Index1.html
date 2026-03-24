@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>THP CRM Phase 2.5 Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600;700&display=swap');
+        body { font-family: 'Sarabun', sans-serif; background-color: #f8fafc; }
+        .progress-ring-circle { transition: stroke-dashoffset 0.35s; transform: rotate(-90deg); transform-origin: 50% 50%; }
+        .card-hover:hover { transform: translateY(-4px); transition: all 0.3s ease; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header Section -->
+        <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200 mb-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-4">
+                <div class="bg-blue-600 p-3 rounded-2xl text-white shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-800">THP CRM Phase 2.5</h1>
+                    <p class="text-slate-500 font-medium">Dashboard ติดตามสถานะโครงการ | ข้อมูล ณ วันที่ 23 มี.ค. 26</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right">
+                    <div class="flex items-center justify-end gap-2 text-green-600 font-bold">
+                        <span class="relative flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
+                        </span>
+                        ON TRACK
+                    </div>
+                    <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">Project Health</p>
+                </div>
+                <div class="h-10 w-px bg-slate-200 mx-2"></div>
+                <div class="bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100">
+                    <span class="text-2xl font-black text-blue-600">11.2%</span>
+                    <p class="text-[10px] text-blue-400 font-bold uppercase tracking-tight">Progress</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm card-hover">
+                <p class="text-slate-400 text-xs font-bold uppercase mb-1">Planned vs Actual</p>
+                <h3 class="text-3xl font-black text-slate-800">11.2% <span class="text-sm font-normal text-slate-400">/ 11.2%</span></h3>
+                <div class="w-full bg-slate-100 h-2 rounded-full mt-4">
+                    <div class="bg-blue-600 h-2 rounded-full" style="width: 11.2%"></div>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm card-hover">
+                <p class="text-slate-400 text-xs font-bold uppercase mb-1">Days Remaining</p>
+                <h3 class="text-3xl font-black text-slate-800">158 <span class="text-sm font-normal text-slate-400">Days</span></h3>
+                <p class="text-xs text-orange-500 mt-2 font-medium leading-none flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Finish: 28 Aug 2026
+                </p>
+            </div>
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm card-hover">
+                <p class="text-slate-400 text-xs font-bold uppercase mb-1">Active Risks</p>
+                <h3 class="text-3xl font-black text-red-600">3</h3>
+                <p class="text-xs text-slate-500 mt-2 font-medium">1 High / 2 Medium Impact</p>
+            </div>
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm card-hover">
+                <p class="text-slate-400 text-xs font-bold uppercase mb-1">Next Milestone</p>
+                <h3 class="text-lg font-bold text-slate-800 leading-tight">Lot #1 Go-Live</h3>
+                <p class="text-xs text-blue-600 mt-2 font-bold flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    Tomorrow (24 Mar)
+                </p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left: Task List -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                        <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                            </svg>
+                            ความคืบหน้ารายงาน
+                        </h2>
+                        <div class="flex bg-slate-200/50 p-1 rounded-xl gap-1">
+                            <button onclick="filterTasks('all')" class="filter-btn active bg-white text-blue-600 px-3 py-1 text-xs font-bold rounded-lg shadow-sm">ทั้งหมด</button>
+                            <button onclick="filterTasks('Done')" class="filter-btn text-slate-500 px-3 py-1 text-xs font-bold rounded-lg">เสร็จแล้ว</button>
+                            <button onclick="filterTasks('In Progress')" class="filter-btn text-slate-500 px-3 py-1 text-xs font-bold rounded-lg">กำลังทำ</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50/50 border-b border-slate-100">
+                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">ชื่องาน (Task)</th>
+                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">สถานะ</th>
+                                    <th class="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">ความคืบหน้า</th>
+                                </tr>
+                            </thead>
+                            <tbody id="task-list">
+                                <!-- Data rows -->
+                                <tr class="task-item border-b border-slate-50 hover:bg-slate-50/50 transition-colors" data-status="Done">
+                                    <td class="px-6 py-4">
+                                        <p class="text-sm font-bold text-slate-700">Requirement & System Design (Lot 1)</p>
+                                        <p class="text-[10px] text-slate-400 font-medium mt-1">Connectivity with Middleware | 2 - 10 Mar 26</p>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="bg-green-100 text-green-700 text-[10px] font-black px-2 py-1 rounded-full uppercase">Done</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-24 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                                <div class="bg-green-500 h-full w-full"></div>
+                                            </div>
+                                            <span class="text-xs font-bold text-slate-600">100%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="task-item border-b border-slate-50 hover:bg-slate-50/50 transition-colors" data-status="Done">
+                                    <td class="px-6 py-4">
+                                        <p class="text-sm font-bold text-slate-700">SIT & UAT (Lot 1)</p>
+                                        <p class="text-[10px] text-slate-400 font-medium mt-1">User Acceptance Testing | 18 - 20 Mar 26</p>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="bg-green-100 text-green-700 text-[10px] font-black px-2 py-1 rounded-full uppercase">Done</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-24 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                                <div class="bg-green-500 h-full w-full"></div>
+                                            </div>
+                                            <span class="text-xs font-bold text-slate-600">100%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="task-item border-b border-slate-50 hover:bg-slate-50/50 transition-colors" data-status="In Progress">
+                                    <td class="px-6 py-4">
+                                        <p class="text-sm font-bold text-slate-700">Production Deployment (Lot 1)</p>
+                                        <p class="text-[10px] text-slate-400 font-medium mt-1">Go-live Readiness | 24 Mar 26</p>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="bg-orange-100 text-orange-700 text-[10px] font-black px-2 py-1 rounded-full uppercase">In Progress</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-24 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                                <div class="bg-orange-500 h-full w-1/2"></div>
+                                            </div>
+                                            <span class="text-xs font-bold text-slate-600">50%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr class="task-item border-b border-slate-50 hover:bg-slate-50/50 transition-colors" data-status="To Do">
+                                    <td class="px-6 py-4">
+                                        <p class="text-sm font-bold text-slate-700">Confirm Scope & Kick-off (Lot 3)</p>
+                                        <p class="text-[10px] text-slate-400 font-medium mt-1">Sales & Customer Service Team Adjustment | 30 Mar 26</p>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <span class="bg-slate-100 text-slate-400 text-[10px] font-black px-2 py-1 rounded-full uppercase">To Do</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-24 bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                                <div class="bg-slate-200 h-full w-0"></div>
+                                            </div>
+                                            <span class="text-xs font-bold text-slate-400">0%</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="space-y-6">
+                <!-- Risk Analysis -->
+                <div class="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-4 flex justify-between items-center">
+                        ความเสี่ยงหลัก (Risks)
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="p-4 bg-red-50 rounded-2xl border border-red-100">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[9px] font-black bg-red-500 text-white px-2 py-0.5 rounded uppercase tracking-tighter">High Impact</span>
+                                <span class="text-[9px] text-slate-400 font-bold uppercase">Owner: THP</span>
+                            </div>
+                            <h4 class="text-xs font-bold text-red-900">Data Migration Lot #2</h4>
+                            <p class="text-[10px] text-red-700 mt-2 italic leading-relaxed font-medium bg-white/50 p-2 rounded-lg">
+                                ความเสี่ยงจากการโอนย้ายข้อมูลขนาดใหญ่ เตรียมทำ Mock Migration 1 รอบก่อนเริ่มจริง
+                            </p>
+                        </div>
+                        <div class="p-4 bg-orange-50 rounded-2xl border border-orange-100">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-[9px] font-black bg-orange-500 text-white px-2 py-0.5 rounded uppercase tracking-tighter">Medium Impact</span>
+                                <span class="text-[9px] text-slate-400 font-bold uppercase">Owner: Beryl8</span>
+                            </div>
+                            <h4 class="text-xs font-bold text-orange-900">Middleware Stability</h4>
+                            <p class="text-[10px] text-orange-700 mt-2 italic leading-relaxed font-medium bg-white/50 p-2 rounded-lg">
+                                การเชื่อมต่อระบบใหม่อาจมีข้อผิดพลาด เตรียมทีม Hypercare ช่วง 7 วันแรกหลัง Deploy
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Next Activity -->
+                <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-6 text-white shadow-xl shadow-blue-200 relative overflow-hidden">
+                    <div class="relative z-10">
+                        <h3 class="text-lg font-black mb-1">กิจกรรมถัดไป</h3>
+                        <p class="text-blue-100 text-xs mb-4 font-medium italic leading-relaxed">ประชุม Kick-off ปรับโครงสร้างทีมขายและทีมบริการลูกค้า (CRM Structure)</p>
+                        <div class="bg-white/20 backdrop-blur-md rounded-2xl p-4 border border-white/20 text-center">
+                            <p class="text-[10px] font-black uppercase tracking-widest opacity-70 mb-1">วันที่ประชุม</p>
+                            <p class="text-2xl font-black">30 มี.ค. 2026</p>
+                        </div>
+                    </div>
+                    <!-- Decorative Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-24 w-24 absolute -bottom-4 -right-4 text-white opacity-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple Task Filter Function
+        function filterTasks(status) {
+            // Update Active Button UI
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active', 'bg-white', 'text-blue-600', 'shadow-sm');
+                btn.classList.add('text-slate-500');
+            });
+            event.target.classList.add('active', 'bg-white', 'text-blue-600', 'shadow-sm');
+            event.target.classList.remove('text-slate-500');
+
+            // Filter Table Rows
+            const rows = document.querySelectorAll('.task-item');
+            rows.forEach(row => {
+                if (status === 'all') {
+                    row.style.display = 'table-row';
+                } else {
+                    const rowStatus = row.getAttribute('data-status');
+                    row.style.display = (rowStatus === status) ? 'table-row' : 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
