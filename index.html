@@ -29,7 +29,6 @@
     <script type="text/babel">
         const { useState, useMemo, useEffect, useRef } = React;
 
-        // Helper to parse Thai date string "DD-เม.ย.-26" to Date object
         const parseThaiDate = (dateStr) => {
             const months = {
                 'ม.ค.': 0, 'ก.พ.': 1, 'มี.ค.': 2, 'เม.ย.': 3, 'พ.ค.': 4, 'มิ.ย.': 5,
@@ -61,7 +60,6 @@
             { id: 19, lot: 'Lot#3', topic: 'Special Quotation Adjustments', task: 'Internal Test', start: '25-ก.ค.-26', end: '31-ก.ค.-26', owner: 'Beryl8', progress: 0, status: 'Pending' },
         ];
 
-        // Icon helper for UMD version of Lucide
         const Icon = ({ name, size = 18, className = "" }) => {
             useEffect(() => { if (window.lucide) window.lucide.createIcons(); }, [name]);
             return <i data-lucide={name} style={{ width: size, height: size }} className={className}></i>;
@@ -74,7 +72,7 @@
             const today = new Date(2026, 2, 24);
             const totalDays = (endDate - startDate) / (1000 * 60 * 60 * 24);
             const months = ['มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.'];
-            const lots = ['All', 'Training', 'Lot#1', 'Lot#2', 'Lot#3'];
+            const lotOptions = ['All', 'Training', 'Lot#1', 'Lot#2', 'Lot#3'];
 
             const getPosition = (date) => ((date - startDate) / (1000 * 60 * 60 * 24) / totalDays) * 100;
             const todayPos = getPosition(today);
@@ -88,19 +86,40 @@
                 }
             };
 
+            // Grouping Logic by Topic
+            const groupedData = useMemo(() => {
+                const groups = {};
+                data.forEach(task => {
+                    if (!groups[task.topic]) {
+                        groups[task.topic] = {
+                            topic: task.topic,
+                            tasks: [],
+                            minStart: parseThaiDate(task.start),
+                            maxEnd: parseThaiDate(task.end)
+                        };
+                    }
+                    const taskStart = parseThaiDate(task.start);
+                    const taskEnd = parseThaiDate(task.end);
+                    if (taskStart < groups[task.topic].minStart) groups[task.topic].minStart = taskStart;
+                    if (taskEnd > groups[task.topic].maxEnd) groups[task.topic].maxEnd = taskEnd;
+                    groups[task.topic].tasks.push(task);
+                });
+                return Object.values(groups);
+            }, [data]);
+
             return (
                 <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm mb-8 overflow-hidden">
                     <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                         <div>
                             <h3 className="font-bold text-slate-800 flex items-center gap-2">
                                 <Icon name="calendar" className="text-red-600" />
-                                Project Gantt Chart (Status View)
+                                Project Gantt Chart (Grouped by Topic)
                             </h3>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 italic">Visualization with Lot, Topic & Task labels</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-1 italic">Red Bars represent Topic Summary | Status Colors represent Tasks</p>
                         </div>
                         <div className="flex items-center gap-2 bg-slate-50 p-1 rounded-2xl border border-slate-100 no-print">
                             <span className="text-[10px] font-black text-slate-400 uppercase px-2">View Lot:</span>
-                            {lots.map(l => (
+                            {lotOptions.map(l => (
                                 <button key={l} onClick={() => onFilterLotChange(l)} className={`px-3 py-1.5 text-[10px] font-bold rounded-xl transition-all ${filterLot === l ? 'bg-white text-red-600 shadow-sm ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800'}`}>{l}</button>
                             ))}
                         </div>
@@ -116,29 +135,54 @@
                                 <div className="absolute top-0 bottom-0 w-px border-l-2 border-dashed border-red-500 z-20 pointer-events-none opacity-60" style={{ left: `${todayPos}%` }}>
                                     <div className="absolute -top-7 -left-1/2 -translate-x-1/2 bg-red-600 text-white text-[9px] px-2 py-0.5 rounded-full font-black whitespace-nowrap shadow-sm">TODAY (24 มี.ค.)</div>
                                 </div>
-                                <div className="space-y-4 relative z-10">
-                                    {data.map(task => {
-                                        const left = getPosition(parseThaiDate(task.start));
-                                        const width = Math.max(0.8, getPosition(parseThaiDate(task.end)) - left);
+                                <div className="space-y-8 relative z-10">
+                                    {groupedData.map(group => {
+                                        const groupLeft = getPosition(group.minStart);
+                                        const groupWidth = Math.max(1, getPosition(group.maxEnd) - groupLeft);
                                         return (
-                                            <div key={task.id} className="relative h-7 group">
-                                                <div className={`absolute top-0 h-full rounded-lg shadow-sm border border-white/30 transition-all group-hover:scale-y-110 ${getBarColorByStatus(task.status)}`} style={{ left: `${left}%`, width: `${width}%` }}></div>
-                                                <div className="absolute top-0 h-full flex items-center whitespace-nowrap pl-2" style={{ left: `${left + width}%` }}>
-                                                    <span className="text-[9px] font-black text-slate-600 uppercase tracking-tighter opacity-80 group-hover:opacity-100 transition-opacity">
-                                                        <span className="text-slate-400 font-bold">Lot:</span> {task.lot} | <span className="text-slate-400 font-bold">Topic:</span> {task.topic} | <span className="text-slate-400 font-bold">Task:</span> {task.task}
-                                                    </span>
+                                            <div key={group.topic} className="space-y-2">
+                                                {/* Group Summary Bar (Red) */}
+                                                <div className="relative h-6 flex items-center">
+                                                    <div className="absolute top-0 h-full bg-red-600 rounded-lg shadow-md border border-red-700 transition-all opacity-90" style={{ left: `${groupLeft}%`, width: `${groupWidth}%` }}></div>
+                                                    <div className="absolute top-0 h-full flex items-center whitespace-nowrap pl-2" style={{ left: `${groupLeft + groupWidth}%` }}>
+                                                        <span className="text-[10px] font-black text-red-600 uppercase tracking-tighter">
+                                                            <Icon name="folder" size={12} className="inline mr-1"/> TOPIC: {group.topic}
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Individual Tasks */}
+                                                <div className="space-y-1.5 pl-4">
+                                                    {group.tasks.map(task => {
+                                                        const taskLeft = getPosition(parseThaiDate(task.start));
+                                                        const taskWidth = Math.max(0.8, getPosition(parseThaiDate(task.end)) - taskLeft);
+                                                        return (
+                                                            <div key={task.id} className="relative h-5 group">
+                                                                <div className={`absolute top-0 h-full rounded-md shadow-sm border border-white/30 transition-all group-hover:scale-y-110 ${getBarColorByStatus(task.status)}`} style={{ left: `${taskLeft}%`, width: `${taskWidth}%` }}></div>
+                                                                <div className="absolute top-0 h-full flex items-center whitespace-nowrap pl-2" style={{ left: `${taskLeft + taskWidth}%` }}>
+                                                                    <span className="text-[8px] font-bold text-slate-500 uppercase tracking-tighter opacity-70 group-hover:opacity-100 transition-opacity">
+                                                                        <span className="text-slate-400">Lot:</span> {task.lot} | <span className="text-slate-400">Task:</span> {task.task}
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
                                         );
                                     })}
+                                    {groupedData.length === 0 && (
+                                        <div className="text-center py-20 text-slate-400 font-black uppercase tracking-widest text-xs">No matching data found</div>
+                                    )}
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div className="mt-4 pt-4 border-t border-slate-50 flex flex-wrap gap-6">
-                        <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest"><div className="w-3 h-3 bg-green-500 rounded-sm"></div> Completed</div>
-                        <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest"><div className="w-3 h-3 bg-amber-500 rounded-sm"></div> In Progress</div>
-                        <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest"><div className="w-3 h-3 bg-slate-300 rounded-sm"></div> Pending</div>
+                    <div className="mt-4 pt-4 border-t border-slate-50 flex flex-wrap gap-6 no-print">
+                        <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest"><div className="w-3 h-3 bg-red-600 rounded-sm"></div> Topic Summary</div>
+                        <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest"><div className="w-3 h-3 bg-green-500 rounded-sm"></div> Task: Completed</div>
+                        <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest"><div className="w-3 h-3 bg-amber-500 rounded-sm"></div> Task: In Progress</div>
+                        <div className="flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest"><div className="w-3 h-3 bg-slate-300 rounded-sm"></div> Task: Pending</div>
                     </div>
                 </div>
             );
@@ -203,6 +247,7 @@
                             </div>
                         </div>
 
+                        {/* Analysis Card */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                             <div className="lg:col-span-2 bg-slate-900 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden">
                                 <Icon name="sparkles" size={100} className="absolute top-4 right-4 text-white/10" />
@@ -223,6 +268,7 @@
                             </div>
                         </div>
 
+                        {/* Search & Filters */}
                         <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 mb-8 flex flex-wrap items-center gap-6 no-print">
                             <div className="flex-1 min-w-[300px] relative">
                                 <Icon name="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -234,8 +280,10 @@
                             </div>
                         </div>
 
+                        {/* --- GANTT CHART SECTION --- */}
                         <GanttChart data={sortedAndFilteredTasks} filterLot={filterLot} onFilterLotChange={setFilterLot} />
 
+                        {/* Task Table */}
                         <div className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
                             <div className="overflow-x-auto custom-scrollbar">
                                 <table className="w-full text-left border-collapse">
@@ -259,7 +307,7 @@
                                                 <td className="px-6 py-5 text-center"><div className="text-[10px] font-black mb-1">{item.progress}%</div><div className="w-20 h-1.5 bg-slate-100 rounded-full mx-auto overflow-hidden border"><div className={`h-full ${item.progress === 100 ? 'bg-green-500' : 'bg-red-600'}`} style={{ width: `${item.progress}%` }}></div></div></td>
                                                 <td className="px-6 py-5 text-[10px] font-black text-slate-500 uppercase">{item.owner}</td>
                                                 <td className="px-6 py-5 text-[10px] text-slate-400"><div className="font-black text-slate-700 mb-1">{item.start}</div><div className="opacity-70 uppercase">ถึง {item.end}</div></td>
-                                                <td className="px-6 py-5 text-right"><span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase border tracking-widest ${item.status === 'Completed' ? 'bg-green-100 text-green-700 border-green-200' : (item.status === 'In Progress' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200')}`}>{item.status}</span></td>
+                                                <td className="px-6 py-5 text-right"><span className={`px-2.5 py-1 rounded-full text-[9px] font-black uppercase border tracking-widest ${item.status === 'Completed' ? 'bg-green-100 text-green-700 border-green-200 shadow-sm shadow-green-50' : (item.status === 'In Progress' ? 'bg-amber-100 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200')}`}>{item.status}</span></td>
                                             </tr>
                                         ))}
                                     </tbody>
